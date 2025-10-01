@@ -10,18 +10,19 @@ def checkRCB(arr, cel):
     box = findBlock(cel)
     rs = 0 if box // 3 == 0 else rs = (3 *(box // 3))
     cs = (3 * (box % 3)) - 3
+    x,y = int(cel.x), int(cel.y)
 # finds all numbers in rows
     for i in range(0,9):
         if arr[cel.x][i] != '.':
-            rcbValues.append(arr[cel.x][i])
+            rcbValues.append(int(arr[x][i]))
 # finds all numbers in columns   
     for i in range(0,9):
         if arr[i][cel.y] != '.':
-            rcbValues.append(arr[cel.x][i])
+            rcbValues.append(int(arr[i][y]))
 # finds all numbers in block    
     for i in range(1,10):
         if arr[rs][cs] != '.':
-            rcbValues.append(arr[rs][cs])    
+            rcbValues.append(int(arr[rs][cs]))    
         if i % 3 == 0:
             rs += 1
             cs -= 2
@@ -32,8 +33,8 @@ def checkRCB(arr, cel):
     
 # calculates which box this cell is in.
 def findBlock(cel):
-    x = cel.x
-    y = cel.y
+    x = int(cel.x)
+    y = int(cel.y)
     cnt = 1
     cnt2 = 1
 
