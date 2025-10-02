@@ -37,16 +37,17 @@ def checkRCB(arr, cel):
 def findBlock(cel):
     x = int(cel.x)
     y = int(cel.y)
-    cnt = 1
-    cnt2 = 1
+    xcnt = 1
+    ycnt = -2
 
-    while x > 3:
+    while x > 2:
+        xcnt += 1
         x -= 3
-        cnt += 1
     
-    while y > 3:
+    while y > 2:
+        ycnt += 1
         y -= 3
-        cnt2 += 1
+
 # returns block number
-    return cnt * cnt2
+    return (3 * xcnt) + ycnt
 
