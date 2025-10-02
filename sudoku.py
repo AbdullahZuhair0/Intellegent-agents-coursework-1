@@ -8,8 +8,8 @@ class cell:
 def checkRCB(arr, cel):
     rcbValues = []
     box = findBlock(cel)
-    rs = 0 if box // 3 == 0 else rs = (3 *(box // 3))
-    cs = (3 * (box % 3)) - 3
+    cs = 0 if box % 3 == 0 else cs = (3 *(box % 3)) - 3
+    rs = (3 *(box // 3))
     x,y = int(cel.x), int(cel.y)
 # finds all numbers in rows
     for i in range(0,9):
