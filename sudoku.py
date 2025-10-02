@@ -1,14 +1,16 @@
 class cell:
-    x = 0
-    y = 0
-    guesses = []
-    value = ""
+    def __init__(self, x, y, isClue, value):
+        self.x = 0
+        self.y = 0
+        self.isClue = True if isClue else False
+        self.guesses = []
+        self.value = ""
 
 # 2d array of rows and columns.
 def checkRCB(arr, cel):
     rcbValues = []
     box = findBlock(cel)
-    cs = 0 if box % 3 == 0 else cs = (3 *(box % 3)) - 3
+    cs = 0 if box % 3 == 0 else (3 *(box % 3)) - 3
     rs = (3 *(box // 3))
     x,y = int(cel.x), int(cel.y)
 # finds all numbers in rows
