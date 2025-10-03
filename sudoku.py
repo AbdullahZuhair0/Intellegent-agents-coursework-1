@@ -5,18 +5,19 @@ class cell:
         self.isClue = True if isClue else False
         self.guesses = []
         self.value = value
-        self.poppedValues = []
 
-    def addGuess(self, val):
-        if val not in self.guesses and val not in self.poppedValues:
-            self.guesses.append(val)
-            print("added")
+    def addGuesses(self, domain, RCB):
+        for i in domain:
+            if i not in RCB:
+                self.guesses.append(i)
 
     def removeGuess(self):
-        val = self.guesses.pop()
-        print("val check" + val)
-        self.poppedValues.append(val)
-        print("val check" + val)
+        if(self.guesses == []):
+            return "."
+        else:
+            val = self.guesses.pop()
+            return val
+
     def setValue(self, val):
         self.value = val
 
@@ -77,29 +78,57 @@ for i in range(0,9):
     cells.append(row)
 
 i,j = 0,0
-# give it a proper condition later.
+x,y = 0,0
+GuessesNotEmpty = []
+"""
+GuessesNotEmpty is used in the inner loop to keep trying each cell until their guesses list is empty and is removed from GuessesNotEmpty when you go back to a previous value,
+we have added this to prevent cells from infinity trying the same guess.
+"""
 # error-free :):):) (syntax-wise ehm ehm)
-while 1:
+# while it''s not the last cell and while cell is not empty (last condition is for last cell).
+while i != 8 and j != 8 and currCell.value != "." :
     currCell = cells[i][j]
-    check = checkRCB(cells, currCell)
-    for num in domain:
-        if num in check:
-            print("nah dude")
+    currCell.addGuesses(domain,checkRCB(cells, currCell))
+    currCell.setValue(currCell.removeGuess)
+    
+    # if the original cell that didn't have a guess still doesn't have a value
+    # could definitly be improved.
+    while cells[i][j] == ".":
+        # if it's the first iteration
+        if x == 0 and y == 0:
+            x = i-1, y = j-1
+            currCell = cells[x][y]
+            currCell.setValue(currCell.removeGuess())
+        # if even the previous cell is empty
+        if currCell.value == ".":
+            GuessesNotEmpty.pop(GuessesNotEmpty.index(currCell))
+            if y == 0:
+                y = 8
+                x -= 1
+            else:
+                y -= 1
+            
+        # go to the next cell
+        elif y == 8:
+            y = 0
+            x += 1
         else:
-            currCell.addGuess(num)
-    # very rough implementation
-    currCell.setValue(currCell.removeGuess())
-    if currCell.value == ".":
-        if j == 0:
-            cells[i-1][j+7].setValue( cells[i-1][j+7].removeGuess())
+            y += 1
+        # whether we go back by 1 cell or we go to the next cell.
+        currCell = cells[x][y]
+        if currCell in GuessesNotEmpty:
+            currCell.setValue(currCell.removeGuess)
         else:
-            cells[i][j-1].setValue( cells[i][j-1].removeGuess())
-        # doesn't actually go back sooooo
+            GuessesNotEmpty.append(currCell)
+            currCell.addGuesses(domain, checkRCB(cells, currCell))
+            currCell.setValue(currCell.removeGuess)
+    # end of nested while loop    
+
+        
     if j == 8:
         # if final row then exit
-        if i == 8:
-            break
-        i += 1
-        j = 0
+        if i != 8:
+           i += 1
+           j = 0
     else:
         j += 1
