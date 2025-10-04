@@ -47,8 +47,8 @@ class cell:
 def checkRCB(arr, cel):
     rcbValues = []
     box = findBlock(cel)
-    rs = 3 * ((box - 1) // 3) 
-    cs = 3 * ((box - 1) % 3)   
+    rs = 3 * (box // 3) 
+    cs = 3 * (box % 3)   
 
     x,y = int(cel.x), int(cel.y)
 # finds all numbers in rows
