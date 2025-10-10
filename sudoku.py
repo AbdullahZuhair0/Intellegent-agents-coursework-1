@@ -1,3 +1,6 @@
+import time
+global domain
+domain = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 class cell:
     def __init__(self, x, y, isClue, value):
         self.x = x
@@ -73,21 +76,6 @@ def findBlock(cel):
     # calculates which box this cell is in.
     return 3 * (cel.x // 3) + (cel.y // 3)
 
-
-cells,row = [],[]
-domain = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
-
-with open("map.txt") as f:
-    for i in range(9):
-        for j in range(9):
-            char = f.read(1)
-            cel = cell(i, j, char != ".", char)
-            row.append(cel)
-        cells.append(row)
-        row = []
-
-
-
 def solver(cells, x, y):
     # if the current index is out of bounds
     if x is None:
@@ -102,6 +90,7 @@ def solver(cells, x, y):
 
     cells[x][y].addGuesses(domain, checkRCB(cells, cells[x][y]))
     while cells[x][y].guesses:
+        time.sleep(0.015) # 15 ms
         cells[x][y].setValue(cells[x][y].removeGuess())
         vals = cells[x][y].next()
         if vals is None or solver(cells, vals[0], vals[1]):
@@ -111,10 +100,24 @@ def solver(cells, x, y):
     # if the backtracking loop fails it is unsolveable 
     return False
 
+def main():
+    cells,row = [],[]
 
-solver(cells, 0, 0)
-
-for row in cells:
-    for col in row:
-        print(col.value)
-    print()
+    with open("map.txt") as f:
+        for i in range(9):
+            for j in range(9):
+                char = f.read(1)
+                while char == "\n" or char == "":
+                    char =  f.read(1)
+                cel = cell(i, j, char != ".", char)
+                row.append(cel)
+            cells.append(row)
+            row = []
+    solver(cells, 0, 0)
+# uncomment this if you wanna check solver output.
+    # for row in cells:
+    #     for col in row:
+    #         print(col.value)
+    #     print()
+if __name__ == "__main__":
+    main()

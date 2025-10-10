@@ -1,4 +1,6 @@
 import pygame
+import sudoku
+
 pygame.init()
 
 #window setup
@@ -6,6 +8,8 @@ WIDTH, HEIGHT = 360, 360
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Grid Example")
 
+# note for adham you can call all functions by sudoku.funcName and to run the solver just type sudoku.main()
+# can't really do more since you haven't pushed yet.
 #grid properties
 grid_props = {
     "rows": 9,
