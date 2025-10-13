@@ -25,6 +25,7 @@ class cell:
 
     def setValue(self, val):
         self.value = val
+        return self.value
 
     def next(self):
         x,y = self.x, self.y
@@ -81,21 +82,29 @@ def solver(cells, x, y):
     if x is None:
         return True  
 
-    if cells[x][y].isClue:
-        vals = cells[x][y].next()
+    cur = cells[x][y]
+    if cur.isClue:
+        vals = cur.next()
         # if the next index is out of bounds
         if vals is None:
             return True
-        return solver(cells, vals[0], vals[1])
+        return (yield from solver(cells, vals[0], vals[1]))
 
-    cells[x][y].addGuesses(domain, checkRCB(cells, cells[x][y]))
-    while cells[x][y].guesses:
+    cur.addGuesses(domain, checkRCB(cells, cur)) 
+    while cur.guesses:
         time.sleep(0.015) # 15 ms
-        cells[x][y].setValue(cells[x][y].removeGuess())
-        vals = cells[x][y].next()
-        if vals is None or solver(cells, vals[0], vals[1]):
+        cur.setValue(cur.removeGuess()) #remove guess applies next
+        yield (x, y, cur.value)
+
+        vals = cur.next()
+
+        if vals is None:
             return True
-        cells[x][y].setValue(".")
+        if (yield from solver(cells, vals[0], vals[1])):
+            return True
+        
+        cur.setValue(".")
+        yield (x, y, ".")
 
     # if the backtracking loop fails it is unsolveable 
     return False
@@ -115,9 +124,9 @@ def main():
             row = []
     solver(cells, 0, 0)
 # uncomment this if you wanna check solver output.
-    # for row in cells:
-    #     for col in row:
-    #         print(col.value)
-    #     print()
+    for row in cells:
+        for col in row:
+            print(col.value)
+        print()
 if __name__ == "__main__":
     main()
