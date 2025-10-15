@@ -14,7 +14,10 @@ delay = 0.0
 speed = 5
 screen = None
 delay_active = 0
-missing = False
+isMissing = False
+isSolvable = True
+isExtra = False
+
 class Button:
     def __init__(self, x, y, width, height, text, font_size, idle_color=(37, 38, 46), action=None):
         self.rect = pg.Rect(x, y, width, height)
@@ -48,9 +51,9 @@ class Button:
                     self.action()
 
 def Solve():
-    global isSolve, gen, delay_active, missing
-    if missing:
-        print("missing chars")
+    global isSolve, gen, delay_active, isMissing
+    if isMissing:
+        print("Missing digits from map.txt")
         return
     if isSolved == True:
         print("Already Solved!")
@@ -63,17 +66,19 @@ def Solve():
         print("Auto-Solver is already running...")
 
 def Reset():
-    global g_row, g_cells, gen, isSolve, isSolved, missing
+    global g_row, g_cells, gen, isSolve, isSolved, isMissing, isSolvable, isExtra
     isSolve, isSolved, g_cells, g_row = False, False, [], []
-    missing = False
+    isSolvable, isMissing, isExtra = True, False, False
     with open("map.txt") as f:
         # for each character in the file if it is in the domain or a blank then add it to the chars
         chars = ''.join(c for c in f.read() if c in "0123456789.")
         # if there are missing chars.
         if len(chars) < 81:
-            missing = True
+            isMissing = True
+        elif len(chars) > 81:
+            isExtra = True
         else:
-            missing = False
+            isMissing = False
             for i in range(9):
                 g_row = []
                 for j in range(9):
@@ -156,7 +161,6 @@ if __name__ == '__main__':
     minus_button    = Button(20,  403, 35,  45, "-", 30, (23, 24, 31), action=decrease_speed)
  
     Reset()
-    solvable = True
     running = True
     while running:
         for event in pg.event.get():
@@ -205,18 +209,20 @@ if __name__ == '__main__':
                 next(gen)
             except StopIteration as si:
                 if si.value == False:
-                    solvable = False
-                    print("map is wrong or unsolvable")
-                else:
+                    isSolvable = False
+                    print("Map is incorrect or unsolvable")
+                elif si.value == True:
                     isSolve, isSolved = False, True
                     print("Solver finished: Puzzle solved successfully.")
 
         
         screen.blit(font1.render("Status:" , True, (255, 255, 255)),(30, 458))
-        if not solvable:
-            screen.blit(font1.render("unsolvable!" , True, (255, 255, 255)),(30, 473))
-        elif missing:
-            screen.blit(font1.render("missing digits!" , True, (255, 255, 255)),(30, 473))
+        if not isSolvable:
+            screen.blit(font1.render("Unsolvable!" , True, (255, 255, 255)),(30, 473))
+        elif isExtra:
+            screen.blit(font1.render("Extra digits!" , True, (255, 255, 255)),(30, 473))
+        elif isMissing:
+            screen.blit(font1.render("Missing digits!" , True, (255, 255, 255)),(30, 473))
         elif isSolved:
             screen.blit(font1.render("Solved!" , True, (255, 255, 255)),(30, 473))
         elif isSolve:
