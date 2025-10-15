@@ -2,29 +2,93 @@ import pygame as pg
 import sudoku as s
 import pywinstyles as pws
 
+# --- Globals ---
+g_cells,g_row = [],[]
+gen = None
+isSolve = False
+isSolved = False
+status = ""
+delay = 0.000
+isReset = True
+delay = 0.0
+speed = 5
+screen = None
 
-pg.init()
+class Button:
+    def __init__(self, x, y, width, height, text, font_size, idle_color=(37, 38, 46), action=None):
+        self.rect = pg.Rect(x, y, width, height)
+        self.text = text
+        self.action = action
+        self.font = pg.font.SysFont("arialblack", font_size)
+        self.color_idle = idle_color    # Default - Shark
+        self.color_hover = (52, 54, 61) # Tuna
+        self.color_click = (80, 80, 80) # Emperor
+        self.current_color = self.color_idle
 
-# Color definitions
-COLOR_NORMAL = (37, 38, 46)
-COLOR_HOVER = (52, 54, 61)
-COLOR_CLICK = (80, 80, 80)
-COLOR_OUTLINE = (200, 200, 200)
-COLOR_TEXT = (255, 255, 255)
-current_color = COLOR_NORMAL
+    def draw(self, screen):
+        pg.draw.rect(screen, self.current_color, self.rect, border_radius=25)
+        text_surface = self.font.render(self.text, True, (255, 255, 255)) # White text
+        text_rect = text_surface.get_rect(center=self.rect.center)
+        screen.blit(text_surface, text_rect)
 
-# Button properties
-button_rect = pg.Rect(101, 412, 201, 50)
-button_text = "Auto Solve"
-button_font = pg.font.SysFont("rupalro", 28)
+    def handle_event(self, event):
+        if event.type == pg.MOUSEMOTION:
+            if self.rect.collidepoint(event.pos):
+                self.current_color = self.color_hover
+            else:
+                self.current_color = self.color_idle
+        elif event.type == pg.MOUSEBUTTONDOWN:
+            if self.rect.collidepoint(event.pos):
+                self.current_color = self.color_click
+        elif event.type == pg.MOUSEBUTTONUP:
+            if self.rect.collidepoint(event.pos):
+                self.current_color = self.color_hover
+                if self.action:
+                    self.action()
 
-#window setup
-WIDTH, HEIGHT = 403, 491
-WIN = pg.display.set_mode((WIDTH, HEIGHT))
-pg.display.set_caption("Sudoku Solver")
-font = pg.font.SysFont("rupalro", 30)
-g_cells,g_row = [],[] 
-pws.apply_style(WIN, "acrylic")
+def Solve():
+    global isSolve, gen
+    if isSolved == True:
+        print("Already Solved!")
+    elif isSolve == False:
+        gen = s.solver(g_cells, 0, 0, delay)
+        isSolve = True
+        print("Auto-Solver started...")
+    else:
+        print("Auto-Solver is already running...")
+
+def Reset():
+    global g_row, g_cells, gen, isSolve, isSolved
+    isSolve, isSolved, g_cells, g_row = False, False, [], []
+
+    with open("map.txt") as f:
+        for i in range(9):
+            for j in range(9):
+                char = f.read(1)
+                while char == "\n" or char == "":
+                    char =  f.read(1)
+                g_cel = s.cell(i, j, char != ".", char)
+                g_row.append(g_cel)
+            g_cells.append(g_row)
+            g_row = []
+
+def increase_speed():
+    global delay, speed
+    delay = max(0.0, delay - 0.0125) 
+    if speed == 5:
+        print("Fastest speed reached - delay: " + str(delay))
+    else:
+        print("Speed increased! delay: " + str(delay))
+        speed += 1
+
+def decrease_speed():
+    global delay, speed
+    delay = min(0.050, delay + 0.0125)
+    if speed == 1:
+        print("Slowest speed reached - delay: " + str(delay))
+    else:
+        print("Speed decreased! delay: " + str(delay))
+        speed -= 1
 
 #grid properties
 grid_props = {
@@ -53,79 +117,87 @@ def draw_grid(props):
     line_width = props["line_width"]
 
     for x in range(21, (cols * cell_size) + 40, cell_size):
-        pg.draw.line(WIN, color, (x, 20), (x, (rows * cell_size)+22), line_width)
+        pg.draw.line(screen, color, (x, 20), (x, (rows * cell_size)+22), line_width)
     for y in range(21, (rows * cell_size) + 40, cell_size):
-        pg.draw.line(WIN, color, (20, y), ((cols * cell_size)+22, y), line_width)
+        pg.draw.line(screen, color, (20, y), ((cols * cell_size)+22, y), line_width)
 
-with open("map.txt") as f:
-    for i in range(9):
-        for j in range(9):
-            char = f.read(1)
-            while char == "\n" or char == "":
-                char =  f.read(1)
-            g_cel = s.cell(i, j, char != ".", char)
-            g_row.append(g_cel)
-        g_cells.append(g_row)
-        g_row = []
+count = 1
+if __name__ == '__main__':
+    pg.init()
 
-gen = s.solver(g_cells, 0, 0)
+    #screen window setup
+    screen_width, screen_height = 403, 511
+    screen = pg.display.set_mode((screen_width, screen_height))
+    pg.display.set_caption("Sudoku Solver")
 
-isSolve = False
-count = 0
-running = True
-while running:
-    
+    font  = pg.font.SysFont("arialblack", 20)
+    font1 = pg.font.SysFont("arialblack", 12)
+    # try:
+    # pws.apply_style(screen, "acrylic")
+    # except Exception:
+    #     pass
+
+    # Create button instances
+    solve_button    = Button(60, 403, 283, 45, "Auto Solve", 20, action=Solve)
+    reset_button    = Button(146,  454, 110,  39, "Reset", 14, action=Reset)
+    plus_button     = Button(348,  403, 35,  45, "+", 30, (23, 24, 31), action=increase_speed)
+    minus_button    = Button(20,  403, 35,  45, "-", 30, (23, 24, 31), action=decrease_speed)
+ 
+    Reset()
+
+    running = True
+    while running:
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                running = False
+            solve_button.handle_event(event)
+            reset_button.handle_event(event)
+            plus_button.handle_event(event)
+            minus_button.handle_event(event)
 
 
-    WIN.fill(grid_props["background_color"])
-    draw_grid(grid_props)
-    draw_grid(box_grid_props)
+        screen.fill(grid_props["background_color"])
+        draw_grid(grid_props)
+        draw_grid(box_grid_props)
 
-    # --- Drawing the button ---
-    pg.draw.rect(WIN, current_color, button_rect, border_radius=25)
-    
-    text_surf = button_font.render(button_text, True, COLOR_TEXT)
-    text_rect = text_surf.get_rect(center=button_rect.center)
-    WIN.blit(text_surf, text_rect)
-
-    # Hover effect
-    if button_rect.collidepoint(pg.mouse.get_pos()):
-        current_color = COLOR_HOVER
-    else:
-        current_color = COLOR_NORMAL
-
-    # while isSolve == False:
-    
-    y = -7
-    for l in g_cells:
-        x = -4
-        y += 40
-        for i in l:
-            # Use the render() method of the font object to create a Surface containing the rendered text.
-            if i.value == ".":
-                text_surface = font.render(" ", True, (255, 255, 255)) # Black text
+        # Write the numbers in the data array
+        y = -14
+        for l in g_cells:
+            x = -4
+            y += 40
+            for i in l:
                 x += 40
+                if i.value == ".":
+                    # Use the render() method of the font object to create a Surface containing the rendered text.
+                    text_surface = font.render(" ", True, (255, 255, 255)) # Black text
+                else:
+                    text_surface = font.render(i.value, True, (255, 255, 255)) # Black text
                 # Blit the created text_surface onto your main display Surface at the desired coordinates.
-                WIN.blit(text_surface, (x, y))
-                continue
-            text_surface = font.render(i.value, True, (255, 255, 255)) # Black text
-            x += 40
-            # Blit the created text_surface onto your main display Surface at the desired coordinates.
-            WIN.blit(text_surface, (x, y))
+                screen.blit(text_surface, (x, y))
 
-    pg.display.flip()
+        screen.blit(font1.render("Speed: " + str(speed), True, (255, 255, 255)),(281, 463))
 
-    for event in pg.event.get():
-        if event.type == pg.QUIT:
-            running = False
-        if isSolve == False and event.type == pg.MOUSEBUTTONDOWN and event.button == 1 and button_rect.collidepoint(event.pos):
-            isSolve = True
-            print("Auto-Solver started...")
-            next(gen) 
-  
-    if isSolve:
-        try:
-            next(gen)
-        except StopIteration:
-            isSolve = False
-            print("Solver finished: Puzzle solved successfully.")
+        # Buttons
+        reset_button.draw(screen)
+        solve_button.draw(screen)
+        plus_button.draw(screen)
+        minus_button.draw(screen)
+
+
+        if isSolve:
+            try:
+                next(gen)
+            except StopIteration:
+                isSolve, isSolved = False, True
+                print("Solver finished: Puzzle solved successfully.")
+
+        if isSolved:
+            screen.blit(font1.render("Status: Solved!" , True, (255, 255, 255)),(20, 463))
+        elif isSolve:
+            screen.blit(font1.render("Status: Solving..." , True, (255, 255, 255)),(20, 463))
+        else:
+            screen.blit(font1.render("Status: Not Solved" , True, (255, 255, 255)),(20, 463))
+        pg.display.flip()
+
+                
+pg.quit()

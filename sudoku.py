@@ -77,7 +77,7 @@ def findBlock(cel):
     # calculates which box this cell is in.
     return 3 * (cel.x // 3) + (cel.y // 3)
 
-def solver(cells, x, y):
+def solver(cells, x, y, delay):
     # if the current index is out of bounds
     if x is None:
         return True  
@@ -88,11 +88,11 @@ def solver(cells, x, y):
         # if the next index is out of bounds
         if vals is None:
             return True
-        return (yield from solver(cells, vals[0], vals[1]))
+        return (yield from solver(cells, vals[0], vals[1], delay))
 
     cur.addGuesses(domain, checkRCB(cells, cur)) 
     while cur.guesses:
-        time.sleep(0.015) # 15 ms
+        time.sleep(delay) # 15 ms
         cur.setValue(cur.removeGuess()) #remove guess applies next
         yield (x, y, cur.value)
 
@@ -100,7 +100,7 @@ def solver(cells, x, y):
 
         if vals is None:
             return True
-        if (yield from solver(cells, vals[0], vals[1])):
+        if (yield from solver(cells, vals[0], vals[1], delay)):
             return True
         
         cur.setValue(".")
