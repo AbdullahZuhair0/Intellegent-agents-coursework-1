@@ -13,6 +13,7 @@ isReset = True
 delay = 0.0
 speed = 5
 screen = None
+delay_active = 0
 
 class Button:
     def __init__(self, x, y, width, height, text, font_size, idle_color=(37, 38, 46), action=None):
@@ -47,11 +48,12 @@ class Button:
                     self.action()
 
 def Solve():
-    global isSolve, gen
+    global isSolve, gen, delay_active
     if isSolved == True:
         print("Already Solved!")
     elif isSolve == False:
         gen = s.solver(g_cells, 0, 0, delay)
+        delay_active = delay
         isSolve = True
         print("Auto-Solver started...")
     else:
@@ -131,7 +133,8 @@ if __name__ == '__main__':
     pg.display.set_caption("Sudoku Solver")
 
     font  = pg.font.SysFont("arialblack", 20)
-    font1 = pg.font.SysFont("arialblack", 12)
+    font1 = pg.font.SysFont("arialblack", 13)
+    font2 = pg.font.SysFont("Arial Bold Italic", 11)
     # try:
     # pws.apply_style(screen, "acrylic")
     # except Exception:
@@ -175,7 +178,8 @@ if __name__ == '__main__':
                 # Blit the created text_surface onto your main display Surface at the desired coordinates.
                 screen.blit(text_surface, (x, y))
 
-        screen.blit(font1.render("Speed: " + str(speed), True, (255, 255, 255)),(281, 463))
+        screen.blit(font1.render("Speed:", True, (255, 255, 255)),(300, 458))
+        screen.blit(font1.render("" + str(speed), True, (255, 255, 255)),(320, 473))
 
         # Buttons
         reset_button.draw(screen)
@@ -185,18 +189,23 @@ if __name__ == '__main__':
 
 
         if isSolve:
+            if delay != delay_active:
+                screen.blit(font2.render("(Reset to apply changes)", True, (255, 255, 255)),(284, 493))
+
             try:
                 next(gen)
             except StopIteration:
                 isSolve, isSolved = False, True
                 print("Solver finished: Puzzle solved successfully.")
 
+        
+        screen.blit(font1.render("Status:" , True, (255, 255, 255)),(30, 458))
         if isSolved:
-            screen.blit(font1.render("Status: Solved!" , True, (255, 255, 255)),(20, 463))
+            screen.blit(font1.render("Solved!" , True, (255, 255, 255)),(30, 473))
         elif isSolve:
-            screen.blit(font1.render("Status: Solving..." , True, (255, 255, 255)),(20, 463))
+            screen.blit(font1.render("Solving..." , True, (255, 255, 255)),(30, 473))
         else:
-            screen.blit(font1.render("Status: Not Solved" , True, (255, 255, 255)),(20, 463))
+            screen.blit(font1.render("Not Solved" , True, (255, 255, 255)),(30, 473))
         pg.display.flip()
 
                 
