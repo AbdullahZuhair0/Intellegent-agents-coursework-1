@@ -51,7 +51,7 @@ class cell:
 
 # 2d array of rows and columns.
 def checkRCB(arr, cel):
-    rcbValues = []
+    r,c,b, rcbValues = [], [], [], []
     box = findBlock(cel)
     rs = 3 * (box // 3)
     cs = 3 * (box % 3)
@@ -60,16 +60,29 @@ def checkRCB(arr, cel):
 # finds all numbers in rows
     for i in range(9):
         if arr[cel.x][i].value != '.':
-            rcbValues.append(arr[x][i].value)
+            r.append(arr[x][i].value)
 # finds all numbers in columns   
     for i in range(9):
         if arr[i][cel.y].value != '.':
-            rcbValues.append(arr[i][y].value)
+            c.append(arr[i][y].value)    
 # finds all numbers in block    
     for i in range(3):
         for j in range(3):
             if arr[rs + i][cs + j].value != '.':
-                rcbValues.append(arr[rs + i][cs + j].value) 
+                b.append(arr[rs + i][cs + j].value) 
+    if len(r) != len(set(r)):
+        return False
+    if len(c) != len(set(c)):
+        return False
+    if len(b) != len(set(b)):
+        return False
+    
+    for i in r:
+        rcbValues.append(i)
+    for i in c:
+        rcbValues.append(i)
+    for i in b:
+        rcbValues.append(i)
 # removes dups and returns all numbers.
     return set(rcbValues)
 
@@ -83,6 +96,11 @@ def solver(cells, x, y, delay):
         return True  
 
     cur = cells[x][y]
+
+    rcb = checkRCB(cells, cur)
+    # if checkrcb return false which means the map had repeated numbers in the same row col or block then it is wrong
+    if not rcb:
+        return False
     if cur.isClue:
         vals = cur.next()
         # if the next index is out of bounds

@@ -14,7 +14,7 @@ delay = 0.0
 speed = 5
 screen = None
 delay_active = 0
-
+missing = False
 class Button:
     def __init__(self, x, y, width, height, text, font_size, idle_color=(37, 38, 46), action=None):
         self.rect = pg.Rect(x, y, width, height)
@@ -48,7 +48,10 @@ class Button:
                     self.action()
 
 def Solve():
-    global isSolve, gen, delay_active
+    global isSolve, gen, delay_active, missing
+    if missing:
+        print("missing chars")
+        return
     if isSolved == True:
         print("Already Solved!")
     elif isSolve == False:
@@ -60,20 +63,26 @@ def Solve():
         print("Auto-Solver is already running...")
 
 def Reset():
-    global g_row, g_cells, gen, isSolve, isSolved
+    global g_row, g_cells, gen, isSolve, isSolved, missing
     isSolve, isSolved, g_cells, g_row = False, False, [], []
-
+    missing = False
     with open("map.txt") as f:
-        for i in range(9):
-            for j in range(9):
-                char = f.read(1)
-                while char == "\n" or char == "":
-                    char =  f.read(1)
-                g_cel = s.cell(i, j, char != ".", char)
-                g_row.append(g_cel)
-            g_cells.append(g_row)
-            g_row = []
-
+        # for each character in the file if it is in the domain or a blank then add it to the chars
+        chars = ''.join(c for c in f.read() if c in "0123456789.")
+        # if there are missing chars.
+        if len(chars) < 81:
+            missing = True
+        else:
+            missing = False
+            for i in range(9):
+                g_row = []
+                for j in range(9):
+                    # since for each row there are 9 values.
+                    char = chars[i*9 + j]
+                    g_cel = s.cell(i, j, char != ".", char)
+                    g_row.append(g_cel)
+                g_cells.append(g_row)
+            
 def increase_speed():
     global delay, speed
     delay = max(0.0, delay - 0.0125) 
@@ -135,10 +144,10 @@ if __name__ == '__main__':
     font  = pg.font.SysFont("arialblack", 20)
     font1 = pg.font.SysFont("arialblack", 13)
     font2 = pg.font.SysFont("Arial Bold Italic", 11)
-    # try:
-    # pws.apply_style(screen, "acrylic")
-    # except Exception:
-    #     pass
+    try:
+        pws.apply_style(screen, "acrylic")
+    except Exception:
+        pass
 
     # Create button instances
     solve_button    = Button(60, 403, 283, 45, "Auto Solve", 20, action=Solve)
@@ -147,7 +156,7 @@ if __name__ == '__main__':
     minus_button    = Button(20,  403, 35,  45, "-", 30, (23, 24, 31), action=decrease_speed)
  
     Reset()
-
+    solvable = True
     running = True
     while running:
         for event in pg.event.get():
@@ -194,13 +203,21 @@ if __name__ == '__main__':
 
             try:
                 next(gen)
-            except StopIteration:
-                isSolve, isSolved = False, True
-                print("Solver finished: Puzzle solved successfully.")
+            except StopIteration as si:
+                if si.value == False:
+                    solvable = False
+                    print("map is wrong or unsolvable")
+                else:
+                    isSolve, isSolved = False, True
+                    print("Solver finished: Puzzle solved successfully.")
 
         
         screen.blit(font1.render("Status:" , True, (255, 255, 255)),(30, 458))
-        if isSolved:
+        if not solvable:
+            screen.blit(font1.render("unsolvable!" , True, (255, 255, 255)),(30, 473))
+        elif missing:
+            screen.blit(font1.render("missing digits!" , True, (255, 255, 255)),(30, 473))
+        elif isSolved:
             screen.blit(font1.render("Solved!" , True, (255, 255, 255)),(30, 473))
         elif isSolve:
             screen.blit(font1.render("Solving..." , True, (255, 255, 255)),(30, 473))
