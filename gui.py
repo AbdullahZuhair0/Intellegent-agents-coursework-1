@@ -8,7 +8,6 @@ gen = None
 isSolve = False
 isSolved = False
 status = ""
-delay = 0.000
 isReset = True
 delay = 0.0
 speed = 5
@@ -17,6 +16,8 @@ delay_active = 0
 isMissing = False
 isSolvable = True
 isExtra = False
+start_time = 0 # ADDED: To store the start time of the solver
+
 
 class Button:
     def __init__(self, x, y, width, height, text, font_size, idle_color=(37, 38, 46), action=None):
@@ -51,13 +52,14 @@ class Button:
                     self.action()
 
 def Solve():
-    global isSolve, gen, delay_active, isMissing
+    global isSolve, gen, delay_active, isMissing, start_time
     if isMissing:
         print("Missing digits from map.txt")
         return
     if isSolved == True:
         print("Already Solved!")
     elif isSolve == False:
+        start_time = pg.time.get_ticks() # ADDED: Record the start time in milliseconds
         gen = s.solver(g_cells, 0, 0, delay)
         delay_active = delay
         isSolve = True
@@ -137,7 +139,6 @@ def draw_grid(props):
     for y in range(21, (rows * cell_size) + 40, cell_size):
         pg.draw.line(screen, color, (20, y), ((cols * cell_size)+22, y), line_width)
 
-count = 1
 if __name__ == '__main__':
     pg.init()
 
@@ -212,6 +213,9 @@ if __name__ == '__main__':
                     isSolvable = False
                     print("Map is incorrect or unsolvable")
                 elif si.value == True:
+                    end_time = pg.time.get_ticks()
+                    elapsed_time = (end_time - start_time) / 1000.0 # Convert milliseconds to seconds
+                    print(f"Solver finished: Puzzle solved successfully in {elapsed_time:.4f} seconds.")
                     isSolve, isSolved = False, True
                     print("Solver finished: Puzzle solved successfully.")
 
