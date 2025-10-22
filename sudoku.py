@@ -1,6 +1,9 @@
 import time
 global domain
 domain = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+stepcnt = 0
+recursivecnt = -1
+backtrackcnt = 0
 class cell:
     def __init__(self, x, y, isClue, value):
         self.x = x
@@ -91,36 +94,45 @@ def findBlock(cel):
     return 3 * (cel.x // 3) + (cel.y // 3)
 
 def solver(cells, x, y, delay):
+    global recursivecnt, stepcnt, backtrackcnt
     # if the current index is out of bounds
     if x is None:
+        print("recursive steps: " + str(recursivecnt) + " step count: " + str(stepcnt) + " backtrack count: " + str(backtrackcnt))
         return True  
 
     cur = cells[x][y]
 
     rcb = checkRCB(cells, cur)
+    recursivecnt += 1
     # if checkrcb return false which means the map had repeated numbers in the same row col or block then it is wrong
     if not rcb:
+        print("recursive steps: " + str(recursivecnt) + " step count: " + str(stepcnt) + " backtrack count: " + str(backtrackcnt))
         return False
     if cur.isClue:
         vals = cur.next()
         # if the next index is out of bounds
         if vals is None:
+            print("recursive steps: " + str(recursivecnt) + " step count: " + str(stepcnt) + " backtrack count: " + str(backtrackcnt))
             return True
         return (yield from solver(cells, vals[0], vals[1], delay))
 
     cur.addGuesses(domain, checkRCB(cells, cur)) 
     while cur.guesses:
-        time.sleep(delay) # 15 ms
+        time.sleep(delay)
         cur.setValue(cur.removeGuess()) #remove guess applies next
+        stepcnt += 1
         yield (x, y, cur.value)
 
         vals = cur.next()
 
         if vals is None:
+            print("recursive steps: " + str(recursivecnt) + " step count: " + str(stepcnt) + " backtrack count: " + str(backtrackcnt))
             return True
         if (yield from solver(cells, vals[0], vals[1], delay)):
+            print("recursive steps: " + str(recursivecnt) + " step count: " + str(stepcnt) + " backtrack count: " + str(backtrackcnt))
             return True
-        
+        else:
+            backtrackcnt += 1
         cur.setValue(".")
         yield (x, y, ".")
 

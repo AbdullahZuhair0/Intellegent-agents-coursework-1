@@ -209,6 +209,7 @@ if __name__ == '__main__':
             try:
                 next(gen)
             except StopIteration as si:
+                s.backtrackcnt, s.stepcnt, s.recursivecnt = 0,0,-1
                 if si.value == False:
                     isSolvable = False
                     print("Map is incorrect or unsolvable")
@@ -217,7 +218,6 @@ if __name__ == '__main__':
                     elapsed_time = (end_time - start_time) / 1000.0 # Convert milliseconds to seconds
                     print(f"Solver finished: Puzzle solved successfully in {elapsed_time:.4f} seconds.")
                     isSolve, isSolved = False, True
-                    print("Solver finished: Puzzle solved successfully.")
 
         
         screen.blit(font1.render("Status:" , True, (255, 255, 255)),(30, 458))
